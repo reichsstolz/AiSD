@@ -1,7 +1,5 @@
 import sys as sus
 
-nodes = set()
-
 
 class Dependency:
     def __init__(self, name, parent=None):
@@ -30,42 +28,55 @@ class Dependency:
         return paths
 
 
-def get_child(name, parent):
-    for node in nodes:
-        if node.name == name:
-            node.add_parent(parent)
-            return node
-    return Dependency(name, parent)
+class Graph:
+    def __init__(self, head, vulnerable):
+        self.nodes = set()
+        self.head = head
+        self.vulnerable = vulnerable
+
+    def get_child(self, name, parent):
+        for node in self.nodes:
+            if node.name == name:
+                node.add_parent(parent)
+                return
+        self.nodes.add(Dependency(name, parent))
+
+    def get_parent(self, name):
+        for node in self.nodes:
+            if node.name == name:
+                return node
+        node = Dependency(name)
+        self.nodes.add(node)
+        return node        
+
+    def print_paths(self):
+        for node in self.nodes:
+            if node.name in self.vulnerable:
+                for path in node.get_path():
+                    if self.head.name in path:
+                        print(path)
 
 
-def extract_node(name):
-    for node in nodes:
-        if node.name == name:
-            return node
-    return
-
-
-if __name__ == '__main__':
+def main():
     test = open("test.txt", "r")
     vulnerable = set(test.readline().split())
     line = test.readline().split()
-    project = Dependency('project')
-    nodes.update(Dependency(name, project) for name in line)
+    graph = Graph(Dependency('project'), vulnerable)
+
+    for i in line:
+        graph.get_child(i, graph.head)
 
     for line in test:
         line = line.replace('\n', '').split()
-        extracted = extract_node(line[0])
+        parent = graph.get_parent(line[0])
 
-        if not extracted:
-            lost_lib = Dependency(line[0])
-            nodes.add(lost_lib)
-            nodes.update(get_child(name, lost_lib) for name in line[1:])
-            continue
+        for name in line[1:]:
+            graph.get_child(name, parent)
 
-        nodes.update(get_child(name, extracted) for name in line[1:])
+    graph.print_paths()
+    test.close()                
 
-    for i in nodes:
-        if i.name in vulnerable:
-            for s in i.get_path():
-                if project.name in s:
-                    print(s)
+
+if __name__ == '__main__':
+    main()
+    
