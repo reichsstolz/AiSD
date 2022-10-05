@@ -1,5 +1,4 @@
 import sys
-import sys as sus
 
 
 class Path:
@@ -12,14 +11,13 @@ class Path:
     def update(self):
         if self.is_end():
             return {self}
-        return set(self.clone(node) for node in self.path[0].parent if self.clone(node))
+        return set(self.clone(node) for node in self.path[0].parent if not self.in_path(node))
 
     def clone(self, node):
         new = Path(None)
         new.path = self.path.copy()
-        if not new.in_path(node):
-            new.path.insert(0, node)
-            return new
+        new.path.insert(0, node)
+        return new
 
     def is_end(self):
         if self.path[0].parent:
@@ -42,7 +40,7 @@ class Dependency:
 
     def get_path(self):
         paths = {Path(self)}
-        while False in [x.is_end() for x in paths]:
+        while False in set(x.is_end() for x in paths):
             buffer = set()
             for p in map(lambda path: path.update(), paths):
                 if p:
@@ -53,36 +51,37 @@ class Dependency:
 
 class Graph:
     def __init__(self, head, vulnerable):
-        self.nodes = set()
+        self.nodes = dict()
         self.head = head
-        self.vulnerable = vulnerable
+        self.vulnerable = set(vulnerable)
 
     def get_child(self, name, parent):
-        for node in self.nodes:
-            if node.name == name:
-                node.add_parent(parent)
-                return
-        self.nodes.add(Dependency(name, parent))
+        child = self.nodes.get(name)
+        if child:
+            child.add_parent(parent)
+            return
+        self.nodes[name] = Dependency(name, parent)
 
     def get_parent(self, name):
-        for node in self.nodes:
-            if node.name == name:
-                return node
-        node = Dependency(name)
-        self.nodes.add(node)
-        return node        
+        parent = self.nodes.get(name)
+        if parent:
+            return parent
+        parent = Dependency(name)
+        self.nodes[name] = parent
+        return parent
 
     def print_paths(self):
-        for node in self.nodes:
-            if node.name in self.vulnerable:
-                for path in node.get_path():
-                    if path.in_path(self.head):
-                        print(str(path))
+        for name in self.vulnerable:
+            if not self.nodes.get(name):
+                continue
+            for path in self.nodes[name].get_path():
+                if path.in_path(self.head):
+                    print(path)
 
 
 def main():
     #test = open("test.txt", "r")
-    vulnerable = set(input().split())
+    vulnerable = input().split()
     line = input().split()
     graph = Graph(Dependency('project'), vulnerable)
 
