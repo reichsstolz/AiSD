@@ -1,53 +1,26 @@
 import sys
-
-
-class Path:
-    def __init__(self, start):
-        self.path = [start]
-
-    def in_path(self, node):
-        return node in self.path
-
-    def update(self):
-        if self.is_end():
-            return {self}
-        return set(self.clone(node) for node in self.path[0].parent if not self.in_path(node))
-
-    def clone(self, node):
-        new = Path(None)
-        new.path = self.path.copy()
-        new.path.insert(0, node)
-        return new
-
-    def is_end(self):
-        if self.path[0].parent:
-            return False
-        return True
-
-    def __str__(self):
-       return " ".join([x.name for x in self.path[1:]])
-
-
 class Dependency:
-    def __init__(self, name, parent=None):
+    def __init__(self, name, parent=None, is_project=False):
         self.name = name
         self.parent = set()
+        self.is_project = is_project
         if parent:
             self.parent = {parent}
 
     def add_parent(self, parent):
         self.parent.add(parent)
 
-    def get_path(self):
-        paths = {Path(self)}
-        while False in set(x.is_end() for x in paths):
-            buffer = set()
-            for p in map(lambda path: path.update(), paths):
-                if p:
-                    buffer.update(p)
-            paths = buffer
-        return paths
+    def get_path(self, current, path):
+        if current.is_project:
+            print(path)
+            return
 
+        if not current.parent or current.name in path.split():
+            return
+        path = current.name + " " +path
+        path = path.strip()
+        for x in current.parent:
+            self.get_path(x, path)
 
 class Graph:
     def __init__(self, head, vulnerable):
@@ -60,7 +33,7 @@ class Graph:
         if child:
             child.add_parent(parent)
             return
-        self.nodes[name] = Dependency(name, parent)
+        self.nodes[name] = Dependency(name, parent=parent)
 
     def get_parent(self, name):
         parent = self.nodes.get(name)
@@ -74,16 +47,13 @@ class Graph:
         for name in self.vulnerable:
             if not self.nodes.get(name):
                 continue
-            for path in self.nodes[name].get_path():
-                if path.in_path(self.head):
-                    print(path)
-
+            self.nodes[name].get_path(self.nodes[name], "")
 
 def main():
     #test = open("test.txt", "r")
     vulnerable = input().split()
     line = input().split()
-    graph = Graph(Dependency('project'), vulnerable)
+    graph = Graph(Dependency("project", is_project=True), vulnerable)
 
     for i in line:
         graph.get_child(i, graph.head)
@@ -98,9 +68,8 @@ def main():
             graph.get_child(name, parent)
 
     graph.print_paths()
-    #test.close()
+    # test.close()
 
 
 if __name__ == '__main__':
     main()
-    
