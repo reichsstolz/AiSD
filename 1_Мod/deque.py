@@ -1,6 +1,7 @@
 import re
 import sys
 
+
 class Deque:
     def __init__(self, size):
         self.size = size
@@ -84,7 +85,7 @@ class Deque:
 
 
 if __name__ == "__main__":
-    #command_re = re.compile("(pushb|pushf|set_size) ([^\S]+)")
+    # command_re = re.compile("(pushb|pushf|set_size) ([^\S]+)")
     pushb_re = re.compile("pushb ([\\S]+)$")
     pushf_re = re.compile("pushf ([\\S]+)$")
     popb_re = re.compile("popb$")
@@ -99,9 +100,9 @@ if __name__ == "__main__":
         if re.match(set_size_re, line) and not deque:
             deque = Deque(int(arg[1]))
         elif re.match(pushb_re, line) and deque:
-                deque.pushb(arg[1])
+            deque.pushb(arg[1])
         elif re.match(pushf_re, line) and deque:
-                deque.pushf(arg[1])
+            deque.pushf(arg[1])
         elif re.match(popb_re, line) and deque:
             val = deque.popb()
             if val:
@@ -114,8 +115,6 @@ if __name__ == "__main__":
             deque.print()
         elif len(line) != 0:
             print('error')
-
-
 
 """
         if re.fullmatch(command_re, line):
