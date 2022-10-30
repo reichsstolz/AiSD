@@ -230,11 +230,11 @@ class Splay:
 
             if type(node) != int:
                 if node.parent is None:
-                    #print(f"[{node.key} {node.value}]", end="")
-                    string += f"[{node.key} {node.value}]"
+                    print(f"[{node.key} {node.value}]", end="")
+                    #string += f"[{node.key} {node.value}]"
                 else:
-                    #print(f"[{node.key} {node.value} {node.parent.key}]", end="")
-                    string += f"[{node.key} {node.value} {node.parent.key}]"
+                    print(f"[{node.key} {node.value} {node.parent.key}]", end="")
+                    #string += f"[{node.key} {node.value} {node.parent.key}]"
 
                 if node.left or node.right:
                     kids_alive = True
@@ -243,18 +243,19 @@ class Splay:
                 add(next_lvl, node.right)
 
             else:
-                #print("_ " * (node - 1), end="")
-                #print("_", end="")
-                string +="_ "*(node-1)
-                string += "_"
+                print("_ " * (node - 1), end="")
+                print("_", end="")
+                #string +="_ "*(node-1)
+                #string += "_"
                 add(next_lvl, None, times=node*2)
 
             if current_lvl:
-                #print(end=" ")
-                string+=" "
+                print(end=" ")
+                #string+=" "
 
             else:
-                print(string)
+                print()
+                #print(string)
                 if not kids_alive:
                     break
                 kids_alive = False
