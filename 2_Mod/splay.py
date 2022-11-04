@@ -216,57 +216,105 @@ class Splay:
 
         self.root = self._merge(left, right)
 
-    def print(self):
-        if self.empty():
-            print("_")
-            return
-        current_lvl = deque([self.root])
-        next_lvl = deque()
-        kids_alive = False
-        string = ""
+    # def print(self):
+    #     if self.empty():
+    #         print("_")
+    #         return
+    #     current_lvl = deque([self.root])
+    #     next_lvl = deque()
+    #     kids_alive = False
+    #     string = ""
+    #
+    #     while True:
+    #         node = current_lvl.popleft()
+    #
+    #         if type(node) != int:
+    #             if node.parent is None:
+    #                 print(f"[{node.key} {node.value}]", end="")
+    #                 #string += f"[{node.key} {node.value}]"
+    #             else:
+    #                 print(f"[{node.key} {node.value} {node.parent.key}]", end="")
+    #                 #string += f"[{node.key} {node.value} {node.parent.key}]"
+    #
+    #             if node.left or node.right:
+    #                 kids_alive = True
+    #
+    #             add(next_lvl, node.left)
+    #             add(next_lvl, node.right)
+    #
+    #         else:
+    #             print("_ " * (node - 1), end="")
+    #             print("_", end="")
+    #             #string +="_ "*(node-1)
+    #             #string += "_"
+    #             add(next_lvl, None, times=node*2)
+    #
+    #         if current_lvl:
+    #             print(end=" ")
+    #             #string+=" "
+    #
+    #         else:
+    #             print()
+    #             #print(string)
+    #             if not kids_alive:
+    #                 break
+    #             kids_alive = False
+    #             current_lvl = next_lvl
+    #             next_lvl = deque()
+    #             string = ""
 
-        while True:
-            node = current_lvl.popleft()
 
-            if type(node) != int:
-                if node.parent is None:
-                    print(f"[{node.key} {node.value}]", end="")
-                    #string += f"[{node.key} {node.value}]"
-                else:
-                    print(f"[{node.key} {node.value} {node.parent.key}]", end="")
-                    #string += f"[{node.key} {node.value} {node.parent.key}]"
+def print_tree(tree: Splay):
+    if tree.empty():
+        print("_")
+        return
+    current_lvl = deque([tree.root])
+    next_lvl = deque()
+    kids_alive = False
+    string = ""
 
-                if node.left or node.right:
-                    kids_alive = True
+    while True:
+        node = current_lvl.popleft()
 
-                add(next_lvl, node.left)
-                add(next_lvl, node.right)
-
+        if type(node) != int:
+            if node.parent is None:
+                print(f"[{node.key} {node.value}]", end="")
+                # string += f"[{node.key} {node.value}]"
             else:
-                print("_ " * (node - 1), end="")
-                print("_", end="")
-                #string +="_ "*(node-1)
-                #string += "_"
-                add(next_lvl, None, times=node*2)
+                print(f"[{node.key} {node.value} {node.parent.key}]", end="")
+                # string += f"[{node.key} {node.value} {node.parent.key}]"
 
-            if current_lvl:
-                print(end=" ")
-                #string+=" "
+            if node.left or node.right:
+                kids_alive = True
 
-            else:
-                print()
-                #print(string)
-                if not kids_alive:
-                    break
-                kids_alive = False
-                current_lvl = next_lvl
-                next_lvl = deque()
-                string = ""
+            add(next_lvl, node.left)
+            add(next_lvl, node.right)
+
+        else:
+            print("_ " * (node - 1), end="")
+            print("_", end="")
+            # string +="_ "*(node-1)
+            # string += "_"
+            add(next_lvl, None, times=node * 2)
+
+        if current_lvl:
+            print(end=" ")
+            # string+=" "
+
+        else:
+            print()
+            # print(string)
+            if not kids_alive:
+                break
+            kids_alive = False
+            current_lvl = next_lvl
+            next_lvl = deque()
+            string = ""
 
 
 def main():
     tree = Splay(None)
-    #test = open("A_test/test12.txt", "r")
+    # test = open("A_test/test12.txt", "r")
     add_re = compile(r"add (-\d+|\d+) (|\S+)")
     set_re = compile(r"set (-\d+|\d+) (|\S+)")
     search_re = compile(r"search (-\d+|\d+)")
@@ -274,7 +322,7 @@ def main():
     min_re = compile(r"min")
     print_re = compile(r"print")
     delete_re = compile(r"delete (-\d+|\d+)")
-    #for line in test:
+    # for line in test:
     for line in sys.stdin:
         line = line.replace('\n', '')
         args = line.split()
@@ -306,7 +354,7 @@ def main():
                     continue
                 print(f"{node.key} {node.value}")
             elif print_re.fullmatch(line):
-                tree.print()
+                print_tree(tree)
             elif delete_re.fullmatch(line):
                 tree.delete(int(args[1]))
             elif line != "":
