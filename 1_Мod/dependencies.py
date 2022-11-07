@@ -1,4 +1,6 @@
 import sys
+
+
 class Dependency:
     def __init__(self, name, parent=None, is_project=False):
         self.name = name
@@ -17,10 +19,11 @@ class Dependency:
 
         if not current.parent or current.name in path.split():
             return
-        path = current.name + " " +path
+        path = current.name + " " + path
         path = path.strip()
         for x in current.parent:
             self.get_path(x, path)
+
 
 class Graph:
     def __init__(self, head, vulnerable):
@@ -49,8 +52,9 @@ class Graph:
                 continue
             self.nodes[name].get_path(self.nodes[name], "")
 
+
 def main():
-    #test = open("test.txt", "r")
+    # test = open("test.txt", "r")
     vulnerable = input().split()
     line = input().split()
     graph = Graph(Dependency("project", is_project=True), vulnerable)
