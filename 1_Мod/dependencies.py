@@ -12,17 +12,20 @@ class Dependency:
     def add_parent(self, parent):
         self.parent.add(parent)
 
-    def get_path(self, current, path):
+    def get_path(self, current, path):  # c 3.7 dict хранит порядок добавления
+
         if current.is_project:
-            print(path)
+            print(" ".join(list(path.keys())[::-1]))
             return
 
-        if not current.parent or current.name in path.split():
+        if not current.parent or path.get(current.name):
             return
-        path = current.name + " " + path
-        path = path.strip()
+
+        path[current.name] = 1
+
         for x in current.parent:
             self.get_path(x, path)
+        path.pop(current.name)
 
 
 class Graph:
@@ -50,13 +53,13 @@ class Graph:
         for name in self.vulnerable:
             if not self.nodes.get(name):
                 continue
-            self.nodes[name].get_path(self.nodes[name], "")
+            self.nodes[name].get_path(self.nodes[name], dict())
 
 
 def main():
-    # test = open("test.txt", "r")
-    vulnerable = input().split()
-    line = input().split()
+    #test = open("C_test/test.txt", "r")
+    vulnerable = input().split()  # input().split()
+    line = input().split()  # input().split()
     graph = Graph(Dependency("project", is_project=True), vulnerable)
 
     for i in line:
