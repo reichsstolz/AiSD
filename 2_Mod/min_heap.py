@@ -97,7 +97,7 @@ class Heap:
     def max_node(self) -> Optional[Node]:
         if self.empty():
             raise Error
-        return max(self.list, key=lambda x: x.key)
+        return max(self.list[len(self.list)//2:], key=lambda x: x.key)
 
     def delete(self, key: int):
         node = self.dict.get(key)
