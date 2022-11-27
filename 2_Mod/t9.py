@@ -193,7 +193,7 @@ if __name__ == "__main__":
             continue
         found = trie.search(line.lower())
         print(line, end=" ")
-        if line in found:
+        if line.lower() in found:
             print("- ok")
         elif found:
             print(f"-> {', '.join(sorted(found))}")
