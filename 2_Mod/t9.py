@@ -196,6 +196,6 @@ if __name__ == "__main__":
         if line in found:
             print("- ok")
         elif found:
-            print(f"-> {','.join(sorted(found))}")
+            print(f"-> {', '.join(sorted(found))}")
         else:
             print("-?")
