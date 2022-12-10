@@ -14,7 +14,10 @@ class Damerau_Levinstein:
     INF = sys.maxsize
 
     @staticmethod
-    def _make_matrix(key: str, string: str) -> list[list[int]]:
+    def __make_matrix(key: str, string: str) -> list[list[int]]:
+        """
+        Делает начальную матрицу
+        """
         l_key = len(key)
         l_str = len(string)
 
@@ -31,20 +34,21 @@ class Damerau_Levinstein:
         return d
 
     @staticmethod
-    def update_distance_(key: str, string: str, prev_d=None, prev_last_pos=None):
+    def update_distance(key: str, string: str, prev_d=None, prev_last_pos=None):
         """
-            Вычисление расстояния Дамерау-Левенштейна между двумя входными словами (lhs и rhs)
-            last_dist И last_ctp - матрицы расстояний полученные на предыдущем этапе
-            Сложность по веремени O(len(lhs) * len(rhs))
-            Сложность по памяти O(len(lhs) * len(rhs))
+        Считает расстояние дамерау-левенштейна.
+        Сложность O(l_key*l_string)
+        Сложность по памяти O(l_key*l_string)
+        В данном случае счёт происходит с определённого оффсета.
+        prev_d - таблица с предыдущего шага
+        prev_last_pos - словарь с последней позицией символа
         """
-
         l_key = len(key)
         l_string = len(string)
         last_pos = dict()
 
         if prev_d is None:
-            new_d = Damerau_Levinstein._make_matrix(key, string)
+            new_d = Damerau_Levinstein.__make_matrix(key, string)
             offset = 0
 
             for i in key + string:
@@ -81,6 +85,21 @@ class Damerau_Levinstein:
         return new_d, last_pos
 
 
+def prefix_len(first: str, second: str) -> int:
+    """
+    Вычисление одинакового префикса
+    Сложность O(min(len(first), len(second)))
+    Сложность по памяти O(1)
+    """
+    eq = 0
+    for i in range(min(len(first), len(second))):
+        if first[i] == second[i]:
+            eq += 1
+            continue
+        break
+    return eq
+
+
 class Node:
     def __init__(self, key=None, word=None):
         self.key = key
@@ -99,18 +118,12 @@ class Node:
     def get_all(self):
         return self.kids.values()
 
-    @staticmethod
-    def compare(first: str, second: str) -> int:
-        eq = 0
-        for i in range(min(len(first), len(second))):
-            if first[i] == second[i]:
-                eq += 1
-                continue
-            break
-        return eq
-
     def split(self, ind: int, word=None):
-
+        """
+        Разделение ноды префиксного дерева по определённому индексу
+        Сложность O(1)
+        Сложность по памяти O(1)
+        """
         if ind > len(self.key) or not self.key:
             raise NodeError
 
@@ -133,6 +146,11 @@ class Trie:
         self.root = Node()
 
     def insert(self, word: str):
+        """
+        Вставка в префиксное дерево
+        Сложность O(len(word))
+        Cложность по памяти O(1)
+        """
         cur: Node = self.root
         string = word
 
@@ -147,7 +165,7 @@ class Trie:
                 cur = new
 
             elif new:
-                ind = Node.compare(new.key, string)
+                ind = prefix_len(new.key, string)
                 string = string[ind:]
                 if not string:
                     new.split(ind=ind, word=word)
@@ -160,20 +178,33 @@ class Trie:
                 string = ""
 
     @staticmethod
-    def _search(string: str, cur: Node, found: list, prev_d=None, prev_last_pos=None):
-        new_d, new_last_pos = Damerau_Levinstein.update_distance_(cur.key, string, prev_d, prev_last_pos)
+    def __search(word: str, cur: Node, found: list, prev_d=None, prev_last_pos=None):
+        """
+        word - искомое слово
+        сur - текущая нода
+        found - список найденных слов
+        prev_d - прошлая матрица для дамерау-левенштейна
+        prev_last_pos - последняя позиция символа для дамерау-левенштейна
+        Сложность по времени = вычисление расстояния Дамерау-Левенштейна + рекурсивный обход детей текущей
+        вершины (если расстояние <= 1).
+        Потомков в худшем случае N-1
+        Общая Сложность O(N*len(string)*len(cur.key)), где N число вершин в дереве
+        Сложность по памяти O(len(found))
+        """
+        new_d, new_last_pos = Damerau_Levinstein.update_distance(cur.key, word, prev_d, prev_last_pos)
         if new_d[-1][-1] <= 1 and cur.word is not None:
             found.append(cur.word)
             for new in cur.get_all():
-                Trie._search(string, new, found, new_d, new_last_pos)
+                Trie.__search(word, new, found, new_d, new_last_pos)
+
         elif min(new_d[-1]) <= 1:
             for new in cur.get_all():
-                Trie._search(string, new, found, new_d, new_last_pos)
+                Trie.__search(word, new, found, new_d, new_last_pos)
 
     def search(self, word: str):
         found = []
         for i in self.root.get_all():
-            self._search(word, i, found)
+            self.__search(word, i, found)
         return found
 
 
