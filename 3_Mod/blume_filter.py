@@ -1,8 +1,6 @@
 import re
 import sys
-from math import log2, log, ceil, e
-
-PRIMES = list()
+from math import log2, log, ceil, sqrt
 
 
 class Error(Exception):
@@ -10,78 +8,76 @@ class Error(Exception):
 
 
 class BitArray:
-    def __init__(self, size: int):
-        self.size = size
+    def __init__(self, bitarray_size: int):
+        self.__size = bitarray_size
         self.__array = bytearray()
-        self.__array.extend([0] * ceil(size / 8))
+        self.__array.extend([0] * (ceil(bitarray_size / 8)))
 
-    def set(self, ind: int, val: bool):
-        array_ind = ind // 8
+    def set(self, ind: int):
         bit_ind = 7 - ind % 8
         bit = 2 ** bit_ind
 
-        if array_ind > self.size:
-            raise IndexError
+        if ind >= self.__size or ind < 0:
+            raise Error
 
-        if val and (self.__array[array_ind] < bit or bin(self.__array[array_ind])[::-1][bit_ind] == "0"):
-            self.__array[array_ind] += bit
-        elif not val and self.__array[array_ind] >= bit:
-            if bin(self.__array[array_ind])[::-1][bit_ind] == "1":
-                self.__array[array_ind] -= bit
+        self.__array[ind // 8] |= bit
 
     def get(self, ind: int) -> bool:
-        array_ind = ind // 8
         bit_ind = 7 - ind % 8
         bit = 2 ** bit_ind
 
-        if array_ind > self.size:
-            raise IndexError
+        if ind >= self.__size or ind < 0:
+            raise Error
 
-        if self.__array[array_ind] >= bit and bin(self.__array[array_ind])[::-1][bit_ind] == "1":
-            return True
-        return False
+        return self.__array[ind // 8] & bit != 0
+
+    def __len__(self):
+        return self.__size
 
     def get_array(self):
-        return "".join([bin(a)[2:].zfill(8) for a in self.__array])[:self.size]
+        return "".join([bin(a)[2:].zfill(8) for a in self.__array])[:self.__size]
+        # return [int(self.get(i)) for i in range(self.size)]
 
 
-def init_primes(n):
-    if n <= 6:  # оценка простых чисел работает до n<=6
-        return [2, 3, 5, 7, 11, 13]
-    sieve = [i for i in range(round(n * (log(n) + log(log(n))) + 1))]
-    i = 2
-    l_sieve = len(sieve)
-    while i < l_sieve:
-        if sieve[i] != 0:
-            j = i ** 2
-            while j < len(sieve):
-                sieve[j] = 0
-                j = j + i
-        i += 1
-    sieve = set(sieve)
-    sieve.remove(0)
-    sieve.remove(1)
-    return list(sieve)
+def init_primes(n) -> list[int]:
+    if n < 6:  # оценка простых чисел работает для n>=6
+        return [2, 3, 5, 7, 11][:n]
+    estimation = round(n * log(n) + n * log(log(n)))
+    sieve = BitArray(estimation)
+    for i in range(3, int(sqrt(estimation)) + 1, 2):
+        if not sieve.get(i):
+            for j in range(i * i, estimation, 2 * i):
+                sieve.set(j)
+    primes = [2] + [i for i in range(3, estimation, 2) if not sieve.get(i)]
+    return primes[:n]
+
+
+def get_new_hash_function(i, m, prime, l_bitarray):
+    return lambda x: (((i + 1) * x + prime) % m) % l_bitarray
+
+
+def init_hash_functions(n_hash, l_bitarray):
+    m = 2 ** 31 - 1
+    primes = init_primes(n_hash)
+    return [get_new_hash_function(i, m, primes[i], l_bitarray) for i in range(n_hash)]
 
 
 class BlumeFilter:
-    M = 2 ** 31 - 1
 
-    def __init__(self, size, n_hash_func):
-        self.__bitarray = BitArray(size)  # проверить правильное округление
-        self.__n_hash_func = n_hash_func
-
-    def __hash_func(self, i, x, pi):
-        return (((i + 1) * x + pi) % self.M) % self.__bitarray.size
+    def __init__(self, l_bitarray, hash_functions):
+        self.__bitarray = BitArray(l_bitarray)
+        self.__hash_functions = hash_functions
 
     def add(self, x):
-        for i in range(self.__n_hash_func):
-            ind = self.__hash_func(i, x, PRIMES[i])
-            self.__bitarray.set(ind, True)
+        if x < 0:
+            raise Error
+        for f in self.__hash_functions:
+            ind = f(x)
+            self.__bitarray.set(ind)
 
     def search(self, x):
-        for i in range(self.__n_hash_func):
-            ind = self.__hash_func(i, x, PRIMES[i + 1])
+        for f in self.__hash_functions:
+            ind = f(x)
             if not self.__bitarray.get(ind):
                 return False
         return True
@@ -102,23 +98,27 @@ if __name__ == "__main__":
         args = line.split()
 
         try:
-            if set_re.fullmatch(line):
+            if set_re.fullmatch(line) and not blume_filter:
                 n = float(args[1])
                 p = float(args[2])
+                if p <= 0 or p >= 1 or n <= 0:
+                    raise Error
                 size = round(((-n) * log2(p)) / log(2))
                 n_hash_func = round(-log2(p))
-                blume_filter = BlumeFilter(size, n_hash_func)
-                PRIMES = init_primes(n_hash_func)
+                if size <= 0 or n_hash_func <= 0:
+                    raise Error
+                blume_filter = BlumeFilter(size, init_hash_functions(n_hash_func, size))
                 print(size, n_hash_func)
 
             elif add_re.fullmatch(line) and blume_filter:
                 blume_filter.add(int(args[1]))
-                print(blume_filter.get_bit_array())
+                # print(blume_filter.get_bit_array())
 
             elif search_re.fullmatch(line) and blume_filter:
                 print(int(blume_filter.search(int(args[1]))))
 
             elif print_re.fullmatch(line) and blume_filter:
+                # print("".join(map(str, blume_filter.get_array())))
                 print(blume_filter.get_bit_array())
 
             elif line != "":
