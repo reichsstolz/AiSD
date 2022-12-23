@@ -13,25 +13,24 @@ class Item:
 
 
 class Knapsack:
-    def __init__(self, p: float, max_weight: int, items: list[Item]):
+    def __init__(self, p: float, max_weight: int, items: list[tuple[int, int]]):
         self.p = p
         self.max_weight = max_weight
-        self.items = items
-        self.weights: list[int] = [item.weight for item in items]
-        self.prices: list[int] = [item.price for item in items]
-        self.original_prices: list[int] = [item.price for item in items]
+        self.weights: list[int] = [item[0] for item in items]
+        self.prices: list[int] = [item[1] for item in items]
+        self.original_prices: list[int] = [item[1] for item in items]
         self.fake_items = self.__init_fake_items()
 
     def __init_fake_items(self) -> list[Item]:
         k = 1
         if self.p != 0:
-            k = len(self.items) / self.p / max(self.prices)
+            k = len(self.weights) / self.p / max(self.prices)
         if k < 1:
             self.prices = list(map(lambda x: floor(k * x), self.prices))
         return [Item(0, 0)] + [Item(self.max_weight + 1, 0) for _ in range(sum(self.prices) + 1)]
 
-    def start(self):
-        l_items = len(self.items)
+    def start(self) -> Item:
+        l_items = len(self.weights)
         for i in range(l_items):
             x = sum(self.prices)
             while x >= self.prices[i]:
@@ -58,7 +57,7 @@ def main():
         if not line:
             continue
         weight, price = line.split()
-        items.append(Item(int(weight), int(price)))
+        items.append((int(weight), int(price)))
 
     knapsack = Knapsack(p, max_weight, items)
     solution = knapsack.start()

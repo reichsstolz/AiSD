@@ -24,7 +24,7 @@ class Heap:
         left: Node = self._get_left(node)
         right: Node = self._get_right(node)
         while True:
-            node = self.min_node(cur, left, right)
+            node = self._search_min(cur, left, right)
             if node.key != cur.key:
                 self._swap(cur, node)
                 left = self._get_left(cur)
@@ -40,6 +40,16 @@ class Heap:
         while parent and parent.key > cur.key:
             self._swap(parent, cur)
             parent = self._get_parent(cur)
+
+    @staticmethod
+    def _search_min(*nodes): # не функция минимума, смотрите ниже
+        cur = nodes[0]
+        for node in nodes:
+            if cur is None:
+                cur = node
+            if node and node.key < cur.key:
+                cur = node
+        return cur
 
     def search(self, key: int) -> Optional[Node]:
         return self.dict.get(key)
@@ -82,22 +92,14 @@ class Heap:
         return True
 
     def min_node(self, *nodes: Node) -> Optional[Node]:
-        if not nodes:
-            if self.empty():
-                raise Error
-            return self.list[0]
-        cur = nodes[0]
-        for node in nodes:
-            if cur is None:
-                cur = node
-            if node and node.key < cur.key:
-                cur = node
-        return cur
+        if self.empty():
+            raise Error
+        return self.list[0]
 
     def max_node(self) -> Optional[Node]:
         if self.empty():
             raise Error
-        return max(self.list[len(self.list)//2:], key=lambda x: x.key)
+        return max(self.list[len(self.list) // 2:], key=lambda x: x.key)
 
     def delete(self, key: int):
         node = self.dict.get(key)
@@ -152,7 +154,7 @@ def print_heap(heap: Heap):
 
 def main():
     heap = Heap()
-    #test = open("B_test/16test.txt", "r")
+    # test = open("B_test/16test.txt", "r")
     add_re = compile(r"add (-\d+|\d+) (|\S+)")
     set_re = compile(r"set (-\d+|\d+) (|\S+)")
     search_re = compile(r"search (-\d+|\d+)")
@@ -161,7 +163,7 @@ def main():
     print_re = compile(r"print")
     delete_re = compile(r"delete (-\d+|\d+)")
     extract_re = compile(r"extract")
-    #for line in test:
+    # for line in test:
     for line in sys.stdin:
         line = line.replace('\n', '')
         args = line.split()
