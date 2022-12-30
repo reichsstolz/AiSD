@@ -91,7 +91,7 @@ class Heap:
             return False
         return True
 
-    def min_node(self, *nodes: Node) -> Optional[Node]:
+    def min_node(self) -> Optional[Node]:
         if self.empty():
             raise Error
         return self.list[0]

@@ -19,14 +19,15 @@ class Knapsack:
         self.weights: list[int] = [item[0] for item in items]
         self.prices: list[int] = [item[1] for item in items]
         self.original_prices: list[int] = [item[1] for item in items]
+        self.__FPTAS()
         self.fake_items = self.__init_fake_items()
 
-    def __init_fake_items(self) -> list[Item]:
-        k = 1
-        if self.p != 0:
-            k = len(self.weights) / self.p / max(self.prices)
-        if k < 1:
+    def __FPTAS(self):
+        k = len(self.weights) / self.p / max(self.prices)
+        if k < 1 and self.p != 0:
             self.prices = list(map(lambda x: floor(k * x), self.prices))
+
+    def __init_fake_items(self) -> list[Item]:
         return [Item(0, 0)] + [Item(self.max_weight + 1, 0) for _ in range(sum(self.prices) + 1)]
 
     def start(self) -> Item:
